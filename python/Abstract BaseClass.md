@@ -4,6 +4,9 @@ Date: 2023-09-06 10:00:00
 Author: nchj
 Tags: python, inheritance
 ---
+
+# Python 抽象基类
+
 ## Abstract
 
 抽象基类是一种用于指定接口和要求子类实现特定方法的方式，但不能直接实例化。在 Python 中，抽象基类通常用于创建一种接口，以确保子类实现了一组特定的方法或属性。在 Python 中，可以使用 `ABC` 或 `ABCMeta` 来定义抽象基类，具体的选择取决于你的需求和 Python 版本。
@@ -16,33 +19,33 @@ Tags: python, inheritance
 - 定义抽象基类时，需要将 `metaclass=ABCMeta` 作为类的一个参数传递。
 - 示例：
 
-   ```python
-   from abc import ABCMeta, abstractmethod
+  ```python
+  from abc import ABCMeta, abstractmethod
 
-   class MyAbstractClass(metaclass=ABCMeta):
-       @abstractmethod
-       def my_abstract_method(self):
-           pass
-   ```
+  class MyAbstractClass(metaclass=ABCMeta):
+      @abstractmethod
+      def my_abstract_method(self):
+          pass
+  ```
 
 ## ABC
 
 **使用 `ABC`：**
 
-- `ABC` 是 Python 3.4以上（待考证）引入的新方式，用于定义抽象基类。
+- `ABC` 是 Python 3.4 以上（待考证）引入的新方式，用于定义抽象基类。
 - 如果你只在 Python 3.x 中工作，并且想要使用较新的方式来定义抽象基类，可以使用 `ABC`。
 - 定义抽象基类时，只需将 `ABC` 作为基类即可。
 - 示例：
 
-   ```python
-   from abc import ABC, abstractmethod
+  ```python
+  from abc import ABC, abstractmethod
 
-   class MyAbstractClass(ABC):
+  class MyAbstractClass(ABC):
 
-       @abstractmethod
-       def my_abstract_method(self):
-           pass
-   ```
+      @abstractmethod
+      def my_abstract_method(self):
+          pass
+  ```
 
 ## 具体使用，以 `ABC` 为例
 

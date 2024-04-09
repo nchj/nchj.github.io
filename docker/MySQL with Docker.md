@@ -1,4 +1,8 @@
-# Start MySQL and use MySQL Command Line
+# Docker 中的 MySQL 配置
+
+本配置针对单机的 Docker MySQL 容器配置，不适用于生产环境。
+
+## Start MySQL and use MySQL Command Line
 
 1. Make sure you have Docker installed and running.
 2. Pull the MySQL image from the Docker Hub using the command: `docker pull mysql`.
@@ -7,7 +11,7 @@
 5. Enter the MySQL root password when prompted.
 6. You will now be connected to the MySQL command line.
 
-# environment variable
+## environment variable
 
 | env name                   | effect                                                  |
 | -------------------------- | ------------------------------------------------------- |
@@ -22,7 +26,7 @@
 
 注 1：除非设置了 MYSQL_ROOT_PASSWORD 或 MYSQL_ALLOW_EMPTY_PASSWORD,否为变量为默认为 true，该变量为 true 时，登陆后需要重新更改密码
 
-# docker-entrypoint 浅析
+## docker-entrypoint 浅析
 
 `Dockerfile` 的 `ENTRYPOINT` 是 `docker-entrypoint.sh`
 

@@ -5,7 +5,8 @@ Author: nchj
 Tags: python,exception,
 ---
 
-# python try...except...else 中else的作用
+# python try...except...else 中 else 的作用
+
 Python 中的 `try...except...else` 语句用于捕获和处理异常，可以在不发生异常时执行一些特定的代码。`else` 块中的代码只在没有异常发生时执行。
 
 下面是 `try...except...else` 语句的基本语法：
