@@ -1,6 +1,6 @@
-# steps(步骤)
+# Git 创建远程分支
 
-assume that you have a remote repository on git server(such as github), and you want to create a new branch on your git remote repository.
+假设你有一个远程仓库，比如 github，你想在远程仓库上创建一个新的分支。
 
 ## 1. 创建并切换到新分支
 

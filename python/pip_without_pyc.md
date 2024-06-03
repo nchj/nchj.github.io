@@ -4,9 +4,13 @@ Date: 2023-09-01 11:00:00
 Tags: [Python, pip, docker]
 ---
 
-# pip install 不生成字节码的方法
+# Python 不生成字节码的方法
 
 打包 Python 镜像时，为了减少生成的镜像的体积，可以通过一些方法阻止生成`.pyc`文件。
+
+PYC 文件的来源是方方面面，包括但不限于：
+打包时运行了 Python 脚本，Python 脚本会生成`.pyc`文件；
+使用 pip 安装 Python 包，Python 包会生成`.pyc`文件；
 
 ## 单独的方法
 
@@ -26,7 +30,7 @@ PYTHONDONTWRITEBYTECODE=1
 python -B yourscript.py
 ```
 
-### pip --no-compile
+### 阻止 pip 生成`.pyc`文件
 
 pip 安装时，可以使用`--no-compile`参数，阻止 pip 生成`.pyc`文件。
 
