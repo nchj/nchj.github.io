@@ -1,0 +1,13 @@
+{
+    "name": "Jekyll",
+    "image": "mcr.microsoft.com/devcontainers/jekyll",
+    "features": {},
+    "forwardPorts": [4000],
+    "postCreateCommand": "bundle install",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+            ]
+        }
+    }
+}
