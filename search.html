@@ -1,0 +1,90 @@
+---
+layout: page
+title: 搜索
+---
+
+<div id="search-container">
+  <input type="text" id="search-input" placeholder="搜索博客文章...">
+  <ul id="results-container"></ul>
+</div>
+
+<script src="https://unpkg.com/lunr/lunr.js"></script>
+<script>
+var documents = [];
+var idx = null;
+
+fetch('/search.json')
+  .then(response => response.json())
+  .then(data => {
+    documents = data;
+    idx = lunr(function () {
+      this.ref('url');
+      this.field('title');
+      this.field('content');
+      this.field('tags');
+      this.field('category');
+
+      data.forEach(function (doc) {
+        if (doc.title) {
+          this.add(doc);
+        }
+      }, this);
+    });
+  });
+
+document.getElementById('search-input').addEventListener('input', function() {
+  var query = this.value;
+  var results = idx.search(query);
+  var container = document.getElementById('results-container');
+  container.innerHTML = '';
+
+  results.forEach(function(result) {
+    var doc = documents.find(function(d) { return d.url === result.ref; });
+    if (doc && doc.title) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = doc.url;
+      a.textContent = doc.title;
+      li.appendChild(a);
+      container.appendChild(li);
+    }
+  });
+});
+</script>
+
+<style>
+#search-container {
+  margin: 20px 0;
+}
+
+#search-input {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+#results-container {
+  list-style-type: none;
+  padding: 0;
+}
+
+#results-container li {
+  margin: 10px 0;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+#results-container a {
+  text-decoration: none;
+  color: #333;
+  font-size: 18px;
+}
+
+#results-container a:hover {
+  color: #0366d6;
+}
+</style>
