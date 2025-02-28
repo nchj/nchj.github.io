@@ -81,7 +81,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
    2. 在 Application 中找到终端，右键点击终端图标，选择“显示简介”
       在弹出的窗口中，勾选`使用 Rosetta 打开`
 
-      ![open with rosetta](asstes/open-with-rosetta.png)
+      ![open with rosetta](/assets/misc/config-a-m-seris-mac-mini/open-with-rosetta.png)
 
    3. 打开终端，安装你想安装的低版本 Node，例如
 
