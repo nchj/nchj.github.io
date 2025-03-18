@@ -6,3 +6,5 @@ vendor
 Gemfile.lock
 
 work/
+
+**/.DS_Store
