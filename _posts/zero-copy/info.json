@@ -1,0 +1,42 @@
+{
+    "title": "java nio，netty，kafka中经常提到“零拷贝”到底是什么？",
+    "url": "https://www.zhihu.com/question/634419059/answer/3493079778",
+    "author": {
+        "name": "勇哥java实战",
+        "url": "https://www.zhihu.com/people/makemyownlife",
+        "badge": ""
+    },
+    "zop": {
+        "authorName": "勇哥java实战",
+        "itemId": "3493079778",
+        "title": "java nio，netty，kafka中经常提到“零拷贝”到底是什么？",
+        "type": "answer"
+    },
+    "zop-question": {
+        "title": "java nio，netty，kafka中经常提到“零拷贝”到底是什么？",
+        "topics": [
+            {
+                "name": "Java",
+                "id": "19561132"
+            },
+            {
+                "name": "NIO",
+                "id": "19651878"
+            },
+            {
+                "name": "Netty",
+                "id": "19732975"
+            }
+        ],
+        "id": "634419059",
+        "isEditable": true
+    },
+    "zop-extra-module": {
+        "card": {
+            "content": {
+                "type": "Question",
+                "token": "634419059"
+            }
+        }
+    }
+}
