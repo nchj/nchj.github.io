@@ -1,7 +1,12 @@
-node_modules
-docs/.vitepress/cache
-docs/.vitepress/dist
+node_modules/
 
+# VitePress generated artifacts
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
+# Local scratch files
 work/
 
+# macOS
+.DS_Store
 **/.DS_Store
