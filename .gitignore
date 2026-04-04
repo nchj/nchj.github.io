@@ -1,9 +1,6 @@
-_site
-.sass-cache
-.jekyll-cache
-.jekyll-metadata
-vendor
-Gemfile.lock
+node_modules
+docs/.vitepress/cache
+docs/.vitepress/dist
 
 work/
 
