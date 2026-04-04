@@ -3,12 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predocs:dev": "npm run docs:sync",
+    "predocs:build": "npm run docs:sync",
+    "predocs:preview": "npm run docs:sync",
     "docs:sync": "node scripts/ensure-archive-pages.mjs",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
+    "gray-matter": "^4.0.3",
     "vitepress": "^1.6.4"
   }
 }
