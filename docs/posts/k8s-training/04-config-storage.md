@@ -1,3 +1,12 @@
+---
+title: "第4章：ConfigMap、Secret 与存储"
+date: "2026-05-15"
+category: "k8s"
+tags:
+  - "k8s"
+  - "AI生成"
+---
+
 # 第4章：ConfigMap、Secret 与存储
 
 ## 🎯 学习目标
@@ -431,7 +440,7 @@ Pod：通过 volumeMounts 挂载 PVC
 ## 🔧 实操练习
 
 ```bash
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 kubectl create namespace k8s-training
 
 # 1. 创建 ConfigMap

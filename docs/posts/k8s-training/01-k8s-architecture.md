@@ -1,3 +1,12 @@
+---
+title: "第1章：Kubernetes 核心概念与架构"
+date: "2026-05-15"
+category: "k8s"
+tags:
+  - "k8s"
+  - "AI生成"
+---
+
 # 第1章：Kubernetes 核心概念与架构
 
 ## 🎯 学习目标
@@ -264,7 +273,7 @@ while true:
 
 ```bash
 # 设置集群连接
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 
 # 创建自己的 namespace（所有练习在这个 namespace 下操作）
 kubectl create namespace k8s-training

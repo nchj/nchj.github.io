@@ -37,7 +37,7 @@ chmod +x deploy.sh cleanup.sh
 ### 2. 手动操作练习
 
 ```bash
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 NS=k8s-training
 
 # 查看 Pod

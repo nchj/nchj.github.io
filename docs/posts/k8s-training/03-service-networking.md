@@ -1,3 +1,12 @@
+---
+title: "第3章：Service 与网络"
+date: "2026-05-15"
+category: "k8s"
+tags:
+  - "k8s"
+  - "AI生成"
+---
+
 # 第3章：Service 与网络
 
 ## 🎯 学习目标
@@ -429,7 +438,7 @@ curl http://localhost:8080
 ## 🔧 实操练习
 
 ```bash
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 kubectl create namespace k8s-training
 
 # 1. 部署应用

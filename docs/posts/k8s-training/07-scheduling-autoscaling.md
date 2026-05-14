@@ -1,3 +1,12 @@
+---
+title: "第7章：调度与弹性伸缩"
+date: "2026-05-15"
+category: "k8s"
+tags:
+  - "k8s"
+  - "AI生成"
+---
+
 # 第7章：调度与弹性伸缩
 
 ## 🎯 学习目标
@@ -854,7 +863,7 @@ spec:
 ## 🔧 实操练习
 
 ```bash
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 kubectl create namespace k8s-training
 
 # 1. 查看 Node 标签（了解 Node 信息）

@@ -1,3 +1,12 @@
+---
+title: "第2章：Pod 与工作负载管理"
+date: "2026-05-15"
+category: "k8s"
+tags:
+  - "k8s"
+  - "AI生成"
+---
+
 # 第2章：Pod 与工作负载管理
 
 ## 🎯 学习目标
@@ -1266,7 +1275,7 @@ spec:
 ## 🔧 实操练习
 
 ```bash
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 kubectl create namespace k8s-training
 
 # 部署 Nginx Deployment

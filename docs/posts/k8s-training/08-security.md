@@ -1,3 +1,12 @@
+---
+title: "第8章：安全与权限"
+date: "2026-05-15"
+category: "k8s"
+tags:
+  - "k8s"
+  - "AI生成"
+---
+
 # 第8章：安全与权限
 
 ## 🎯 学习目标
@@ -1005,7 +1014,7 @@ roleRef:
 ## 🔧 实操练习
 
 ```bash
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 kubectl create namespace k8s-training
 
 # 1. 创建 ServiceAccount

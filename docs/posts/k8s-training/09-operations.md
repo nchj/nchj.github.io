@@ -1,3 +1,12 @@
+---
+title: "第9章：运维与故障排查"
+date: "2026-05-15"
+category: "k8s"
+tags:
+  - "k8s"
+  - "AI生成"
+---
+
 # 第9章：运维与故障排查
 
 ## 🎯 学习目标
@@ -757,7 +766,7 @@ OOMKilled：
 ## 🔧 实操练习
 
 ```bash
-export KUBECONFIG=~/.kube/sealos.yaml
+export KUBECONFIG=~/.kube/config
 kubectl create namespace k8s-training
 
 # 1. 部署一个应用

@@ -12,7 +12,7 @@
 
 set -e
 
-KUBECONFIG_PATH="${KUBECONFIG:-$HOME/.kube/sealos.yaml}"
+KUBECONFIG_PATH="${KUBECONFIG:-$HOME/.kube/config}"
 NS="k8s-training"
 RELEASE_NAME="training-app"
 CHART_DIR="./helm-chart"
@@ -281,8 +281,6 @@ echo "  ✅ RollingUpdate   - 零停机更新策略"
 echo ""
 echo "================================================"
 
-warn "⚠️  Sealos 是付费集群！练习完请务必执行清理！"
-echo ""
 echo "清理命令："
 echo "  cd $(pwd)"
 echo "  ./cleanup.sh"
