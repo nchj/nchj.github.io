@@ -1,0 +1,74 @@
+# ===========================================
+# Deployment 模板
+# 知识点：Pod、副本、资源限制、探针、滚动更新
+# ===========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "training-app.fullname" . }}
+  labels:
+    {{- include "training-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "training-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "training-app.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        # ========== 知识点：环境变量注入 ==========
+        # ConfigMap 注入（非敏感配置）
+        env:
+        {{- range $key, $val := .Values.config }}
+        - name: {{ $key }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "training-app.fullname" $ }}-config
+              key: {{ $key }}
+        {{- end }}
+        # Secret 注入（敏感信息）
+        {{- range $key, $val := .Values.secrets }}
+        - name: {{ $key }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "training-app.fullname" $ }}-secret
+              key: {{ $key }}
+        {{- end }}
+        # ========== 知识点：资源限制 ==========
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        # ========== 知识点：存活探针 ==========
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 10 }}
+        # ========== 知识点：就绪探针 ==========
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 10 }}
+        # ========== 知识点：持久化存储挂载 ==========
+        {{- if .Values.persistence.enabled }}
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "training-app.fullname" . }}-pvc
+      {{- end }}

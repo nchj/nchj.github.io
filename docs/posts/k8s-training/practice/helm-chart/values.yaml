@@ -1,0 +1,87 @@
+# ===========================================
+# K8S培训综合实战 - values.yaml
+# 覆盖所有知识点：
+# - Deployment（Pod、资源限制、探针、滚动更新）
+# - Service（ClusterIP）
+# - ConfigMap（非敏感配置）
+# - Secret（敏感信息）
+# - Ingress（HTTP路由）
+# ===========================================
+
+# 全局配置
+global:
+  namespace: k8s-training
+
+# Deployment 配置
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "1.25"
+  pullPolicy: IfNotPresent
+
+# 资源限制
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "500m"
+    memory: "256Mi"
+
+# 滚动更新策略
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# 存活探针
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+# 就绪探针
+readinessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 5
+  periodSeconds: 3
+
+# Service 配置
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+# ConfigMap 配置（非敏感）
+config:
+  APP_ENV: production
+  LOG_LEVEL: info
+  TZ: Asia/Shanghai
+
+# Secret 配置（敏感）- 注意：生产环境应使用外部 Secret 管理
+secrets:
+  DB_HOST: mysql-service
+  DB_PORT: "3306"
+  DB_USER: app_user
+  DB_PASSWORD: ChangeMe123!
+
+# Ingress 配置
+ingress:
+  enabled: false
+  className: "nginx"
+  host: app.example.com
+  path: /
+  pathType: Prefix
+
+# PVC 配置（可选持久化存储）
+persistence:
+  enabled: false
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClassName: ""
