@@ -126,6 +126,7 @@ config:
 
 **templates/deployment.yaml（模板）**：
 
+<!-- v-pre -->
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -159,6 +160,7 @@ spec:
 ```
 
 **模板语法要点**：
+<!-- v-pre -->
 ```go
 {{ .Values.xxx }}           # 引用 values.yaml 的值
 {{ .Chart.Name }}           # 引用 Chart 元数据
@@ -282,7 +284,7 @@ ingress:
 - C) 更新 myapp 到版本1
 - D) 查看 myapp 的历史
 
-**Q3.** Helm 模板中 `{{ .Values.replicaCount }}` 的作用是？
+**Q3.** Helm 模板中 <span v-pre>`{{ .Values.replicaCount }}`</span> 的作用是？
 - A) 定义 replicaCount 的值
 - B) 引用 values.yaml 中 replicaCount 的值
 - C) 创建一个名为 replicaCount 的资源
@@ -327,7 +329,7 @@ Chart 是包模板，Release 是 Chart 的一个部署实例。同一个 Chart �
 rollback 会回滚到指定的历史版本（revision），之前的版本会被保留在 history 中。
 
 ### A3. B) 引用 values.yaml 中 replicaCount 的值
-`{{ .Values.xxx }}` 是 Go 模板语法，引用 values.yaml 中的配置值。
+<span v-pre>`{{ .Values.xxx }}`</span> 是 Go 模板语法，引用 values.yaml 中的配置值。
 
 ### A4. C) 本地渲染模板，查看最终 YAML（不部署）
 `helm template` 非常有用，可以在不部署的情况下看到渲染后的 K8S YAML，用于调试模板。

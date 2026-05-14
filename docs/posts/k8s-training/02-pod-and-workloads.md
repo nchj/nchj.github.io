@@ -905,6 +905,7 @@ spec:
 业务系统 ──提交 Workflow 定义──▶ Argo Server（K8S 内）──▶ 按 DAG 顺序创建 Pod
 ```
 
+<!-- v-pre -->
 ```yaml
 # 示例：视频处理 Workflow（下载 → 转码 → 上传，可并行多路转码）
 apiVersion: argoproj.io/v1alpha1
