@@ -51,41 +51,42 @@ Kubernetes：
 
 ### 1.2 集群架构
 
+```mermaid
+flowchart TB
+    subgraph K8S_Cluster["K8S Cluster"]
+        subgraph Master["Master Node(s)"]
+            API_Server["API Server"]
+            Scheduler["Scheduler"]
+            etcd["etcd"]
+            Controller_Manager["Controller Manager"]
+            Cloud_Controller["Cloud Controller"]
+        end
+
+        Master -->|"REST API"| Workers
+    end
+
+    subgraph Workers["Worker Nodes"]
+        W1["Worker 1"]:::worker
+        W2["Worker 2"]:::worker
+        WN["Worker N"]:::worker
+
+        W1 --> kubelet1["kubelet"]
+        W1 --> kubeproxy1["kube-proxy"]
+        W1 --> pods1["Pod Pod"]
+
+        W2 --> kubelet2["kubelet"]
+        W2 --> kubeproxy2["kube-proxy"]
+        W2 --> pods2["Pod Pod"]
+
+        WN --> kubeletN["kubelet"]
+        WN --> kubeproxyN["kube-proxy"]
+        WN --> podsN["Pod Pod"]
+    end
+
+    classDef worker fill:#f9f,stroke:#333,stroke-width:2px
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    K8S Cluster                          │
-│                                                         │
-│  ┌───────────── Master Node(s) ─────────────┐          │
-│  │                                          │          │
-│  │  ┌──────────┐  ┌──────────┐  ┌────────┐ │          │
-│  │  │ API      │  │Scheduler │  │ etcd   │ │          │
-│  │  │ Server   │  │          │  │        │ │          │
-│  │  └──────────┘  └──────────┘  └────────┘ │          │
-│  │  ┌──────────┐  ┌──────────┐             │          │
-│  │  │Controller│  │  Cloud   │             │          │
-│  │  │ Manager  │  │ Controller│             │          │
-│  │  └──────────┘  └──────────┘             │          │
-│  └──────────────────────────────────────────┘          │
-│                        ▲                               │
-│                        │ REST API                      │
-│          ┌─────────────┼──────────────┐               │
-│          ▼             ▼              ▼               │
-│  ┌───────────┐  ┌───────────┐  ┌───────────┐          │
-│  │ Worker 1  │  │ Worker 2  │  │ Worker N  │          │
-│  │           │  │           │  │           │          │
-│  │ ┌───────┐ │  │ ┌───────┐ │  │ ┌───────┐ │          │
-│  │ │kubelet│ │  │ │kubelet│ │  │ │kubelet│ │          │
-│  │ └───────┘ │  │ └───────┘ │  │ └───────┘ │          │
-│  │ ┌───────┐ │  │ ┌───────┐ │  │ ┌───────┐ │          │
-│  │ │kube-  │ │  │ │kube-  │ │  │ │kube-  │ │          │
-│  │ │proxy  │ │  │ │proxy  │ │  │ │proxy  │ │          │
-│  │ └───────┘ │  │ └───────┘ │  │ └───────┘ │          │
-│  │ ┌───────┐ │  │ ┌───────┐ │  │ ┌───────┐ │          │
-│  │ │Pod Pod│ │  │ │Pod Pod│ │  │ │Pod Pod│ │          │
-│  │ └───────┘ │  │ └───────┘ │  │ └───────┘ │          │
-│  └───────────┘  └───────────┘  └───────────┘          │
-└─────────────────────────────────────────────────────────┘
-```
+
+> **图 1-1：K8S 集群架构图**
 
 ### 1.3 核心组件详解
 

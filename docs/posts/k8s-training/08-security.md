@@ -24,30 +24,19 @@ tags:
 
 K8S 安全分为四个层面：
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                 K8S 安全四层模型                            │
-│                                                          │
-│  ① 认证（Authentication）                                │
-│     "你是谁？"                                           │
-│     → Token、证书、OIDC、ServiceAccount                  │
-│                                                          │
-│  ② 授权（Authorization / RBAC）                         │
-│     "你能做什么？"                                        │
-│     → Role、ClusterRole、RoleBinding                     │
-│                                                          │
-│  ③ 准入控制（Admission Control）                        │
-│     "你的请求安全吗？"                                    │
-│     → LimitRanger、ResourceQuota、PodSecurity           │
-│                                                          │
-│  ④ 网络策略（Network Policy）                            │
-│     "谁能和谁通信？"                                      │
-│     → NetworkPolicy、Service Mesh                        │
-└──────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Security["K8S 安全四层模型"]
+        A["① 认证（Authentication）<br/>\"你是谁？\"<br/>→ Token、证书、OIDC、ServiceAccount"]
+        B["② 授权（Authorization / RBAC）<br/>\"你能做什么？\"<br/>→ Role、ClusterRole、RoleBinding"]
+        C["③ 准入控制（Admission Control）<br/>\"你的请求安全吗？\"<br/>→ LimitRanger、ResourceQuota、PodSecurity"]
+        D["④ 网络策略（Network Policy）<br/>\"谁能和谁通信？\"<br/>→ NetworkPolicy、Service Mesh"]
+    end
 
-请求流程：
-  用户请求 → ①认证（你是谁）→ ②授权（你能做吗）→ ③准入控制（请求安全吗）→ 写入 etcd
+    Request["用户请求"] --> Auth["①认证"] --> Authz["②授权"] --> Admission["③准入控制"] --> etcd["写入 etcd"]
 ```
+
+> **图 8-1：K8S 安全四层模型**
 
 ---
 
@@ -72,19 +61,13 @@ ClusterRoleBinding  → 把 ClusterRole 绑定到"谁"
   ServiceAccount → Pod 的身份（最常用！）
 ```
 
+```mermaid
+flowchart LR
+    Role["Role<br/>(权限规则)"] -->|"绑定到"| RB["RoleBinding<br/>(角色绑定)"]
+    RB -->|"授予"| SA["ServiceAccount（Pod 身份）<br/>或 User / Group（用户/用户组）"]
 ```
-┌─────────────┐     绑定到     ┌──────────────────┐
-│   Role      │ ←──────────── │   RoleBinding    │
-│ (权限规则)   │               │ (角色绑定)        │
-└──────┬──────┘               └────────┬─────────┘
-       │                               │
-       │        授予                   │
-       ▼                               ▼
-┌──────────────────────────────────────────────┐
-│         ServiceAccount（Pod 身份）              │
-│   或 User / Group（用户/用户组）               │
-└──────────────────────────────────────────────┘
-```
+
+> **图 8-2：RBAC 核心概念**
 
 #### 8.2.2 Role 和 ClusterRole
 
@@ -251,17 +234,20 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
-```
-总结对比：
+```mermaid
+flowchart LR
+    subgraph Table["RBAC 组合对比表"]
+        direction TB
+        H["组合方式"]:::header --> A["roleRef 类型"]:::header --> B["binding 类型"]:::header --> C["作用范围"]:::header
+        R1["常规用法"] --> R1A["Role"] --> R1B["RoleBinding"] --> R1C["同 Namespace"]
+        R2["跨 NS 复用"] --> R2A["ClusterRole"] --> R2B["RoleBinding"] --> R2C["⭐ 仅 RoleBinding 所在 NS"]
+        R3["全集群授权"] --> R3A["ClusterRole"] --> R3B["ClusterRoleBinding"] --> R3C["全集群"]
+    end
 
-                  ┌──────────────┬──────────────────────────┐
-                  │ roleRef 类型  │ binding 类型              │ 作用范围
-  ────────────────┼──────────────┼──────────────────────────┤
-  常规用法        │ Role         │ RoleBinding               │ 同 Namespace
-  跨 NS 复用      │ ClusterRole  │ RoleBinding               │ ⭐ 仅 RoleBinding 所在 NS
-  全集群授权      │ ClusterRole  │ ClusterRoleBinding        │ 全集群
-  ────────────────┴──────────────┴──────────────────────────┘
+    classDef header fill:#f96
 ```
+
+> **图 8-3：RBAC 组合对比**
 
 #### 8.2.7 聚合 ClusterRole（Aggregated ClusterRole）
 
@@ -451,28 +437,39 @@ kubectl edit role <role-name> -n production
 
 **场景**：一个 K8S 集群，team-a 和 team-b 各有自己的 Namespace，SRE 团队负责全集群运维。
 
-```
-集群权限架构图：
+```mermaid
+flowchart TB
+    subgraph Cluster["K8S 集群"]
+        subgraph NS_A["Namespace: team-a"]
+            SA_A1["app-sa"]
+            SA_A2["ci-sa"]
+            SA_A3["mon-sa"]
+            SA_A1 --> RB_A1["RoleBinding"]
+            SA_A2 --> RB_A2["RoleBinding"]
+            SA_A3 --> RB_A3["RoleBinding"]
+            RB_A1 -.-> CR_E["ClusterRole: edit"]
+            RB_A2 -.-> CR_E
+            RB_A3 -.-> CR_V["ClusterRole: view"]
+        end
 
-┌─────────────────────────────────────────────────────────────┐
-│                        K8S 集群                              │
-│                                                             │
-│  ┌─────────────────────┐   ┌─────────────────────────┐     │
-│  │   Namespace: team-a  │   │   Namespace: team-b     │     │
-│  │                      │   │                         │     │
-│  │  app-sa ─[RoleBinding]→ ClusterRole:edit          │     │
-│  │  ci-sa  ─[RoleBinding]→ ClusterRole:edit          │     │
-│  │  mon-sa ─[RoleBinding]→ ClusterRole:view          │     │
-│  └──────────────────────┘   └─────────────────────────┘     │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │              集群级别（ClusterRoleBinding）           │   │
-│  │  sre-team → ClusterRole:cluster-admin               │   │
-│  │  monitoring-sa → ClusterRole:view                   │   │
-│  │  ingress-controller-sa → ClusterRole:ingress-viewer │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
+        subgraph NS_B["Namespace: team-b"]
+            SA_B1["app-sa"]
+            SA_B2["ci-sa"]
+            SA_B1 --> RB_B1["RoleBinding"]
+            SA_B2 --> RB_B2["RoleBinding"]
+            RB_B1 -.-> CR_E
+            RB_B2 -.-> CR_E
+        end
+
+        subgraph ClusterLevel["集群级别（ClusterRoleBinding）"]
+            SRE["sre-team"] -.-> CR_ADMIN["ClusterRole: cluster-admin"]
+            MON["monitoring-sa"] -.-> CR_V
+            ING["ingress-controller-sa"] -.-> CR_ING["ClusterRole: ingress-viewer"]
+        end
+    end
 ```
+
+> **图 8-4：多团队 RBAC 架构**
 
 ```yaml
 # 完整示例：为 team-a 的 CI/CD 流水线配置 RBAC

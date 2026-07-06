@@ -23,16 +23,19 @@ tags:
 **一句话回答**：K8S 采用 Master-Worker 架构，Master 节点负责管理和调度（API Server、Scheduler、Controller Manager、etcd），Worker 节点运行容器（kubelet、kube-proxy）。
 
 **展开回答**：
-```
-Master 节点（控制面）：
-├── API Server    → 唯一入口，认证/授权/准入控制，所有组件通过它通信
-├── etcd          → 分布式KV存储，保存集群所有状态数据
-├── Scheduler     → 调度器，决定Pod运行在哪个Node
-└── Controller Manager → 控制器管理器，维护集群状态（Deployment/Node等控制器）
+```mermaid
+flowchart TB
+    subgraph Master["Master 节点（控制面）"]
+        API["API Server<br/>唯一入口，认证/授权/准入控制，所有组件通过它通信"]
+        etcd["etcd<br/>分布式KV存储，保存集群所有状态数据"]
+        Scheduler["Scheduler<br/>调度器，决定Pod运行在哪个Node"]
+        CM["Controller Manager<br/>控制器管理器，维护集群状态"]
+    end
 
-Worker 节点（数据面）：
-├── kubelet       → 每个Node上的代理，管理容器生命周期
-└── kube-proxy    → 维护网络规则，实现Service负载均衡
+    subgraph Worker["Worker 节点（数据面）"]
+        kubelet["kubelet<br/>每个Node上的代理，管理容器生命周期"]
+        kubeproxy["kube-proxy<br/>维护网络规则，实现Service负载均衡"]
+    end
 ```
 
 **加分点**：提到"所有组件通过 API Server 通信而非直接访问 etcd"体现了对安全和解耦的理解。

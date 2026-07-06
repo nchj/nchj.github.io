@@ -24,32 +24,33 @@ tags:
 
 回顾第1章，Scheduler 的职责是**决定 Pod 运行在哪个 Node 上**。调度是一个两步过程：
 
+```mermaid
+flowchart TB
+    subgraph Step1["第一步：过滤（Filtering / Predicate）"]
+        direction TB
+        F1["排除不满足条件的 Node："]
+        F2["❌ 资源不够（CPU/内存 requests 超出 Node 可分配）"]
+        F3["❌ nodeSelector 不匹配"]
+        F4["❌ nodeAffinity 不满足"]
+        F5["❌ Taint（污点）未被 Toleration 容忍"]
+        F6["❌ PVC 存储不可用"]
+        F7["❌ Pod 反亲和性冲突"]
+        F8["→ 剩下的叫\"可调度节点\"（Feasible Nodes）"]
+    end
+
+    subgraph Step2["第二步：打分（Scoring / Priority）"]
+        direction TB
+        S1["给每个可调度节点打分，选最高的："]
+        S2["✅ 资源均衡（选剩余资源最均衡的）"]
+        S3["✅ podAffinity（靠近或远离某些 Pod）"]
+        S4["✅ 数据本地性（PV 和 Pod 在同一 Node）"]
+        S5["→ 选得分最高的 Node → 绑定（Binding）"]
+    end
+
+    Step1 --> Step2
 ```
-┌──────────────────────────────────────────────────────────┐
-│                    调度流程                                │
-│                                                          │
-│  第一步：过滤（Filtering / Predicate）                    │
-│  ─────────────────────────────────────────               │
-│  排除不满足条件的 Node：                                   │
-│    ❌ 资源不够（CPU/内存 requests 超出 Node 可分配）       │
-│    ❌ nodeSelector 不匹配                                 │
-│    ❌ nodeAffinity 不满足                                 │
-│    ❌ Taint（污点）未被 Toleration 容忍                    │
-│    ❌ PVC 存储不可用                                      │
-│    ❌ Pod 反亲和性冲突                                     │
-│                                                          │
-│  → 剩下的叫"可调度节点"（Feasible Nodes）                 │
-│                                                          │
-│  第二步：打分（Scoring / Priority）                       │
-│  ─────────────────────────────────────────               │
-│  给每个可调度节点打分，选最高的：                           │
-│    ✅ 资源均衡（选剩余资源最均衡的）                       │
-│    ✅ podAffinity（靠近或远离某些 Pod）                   │
-│    ✅ 数据本地性（PV 和 Pod 在同一 Node）                 │
-│                                                          │
-│  → 选得分最高的 Node → 绑定（Binding）                    │
-└──────────────────────────────────────────────────────────┘
-```
+
+> **图 7-1：调度流程（过滤 + 打分）**
 
 **面试回答模板**：
 > "K8S 的调度分两步：先过滤排除不满足条件的 Node，再打分选最优的。过滤条件包括资源请求、节点选择器、亲和性、污点容忍等。打分考虑资源均衡、亲和性权重、数据本地性等因素。"
@@ -355,25 +356,14 @@ HPA（Horizontal Pod Autoscaler）根据指标**自动调整 Pod 副本数**。
   完全自动，无需人工干预！
 ```
 
+```mermaid
+flowchart TB
+    Metrics["Metrics Server<br/>(采集 Pod 的 CPU/内存指标)"] --> HPA["HPA Controller<br/>(每 15-30 秒检查一次)"]
+    HPA -->|"期望副本数 = ceil(当前指标值 / 目标指标值)"| Calc["计算"]
+    Calc -->|"例：目标 CPU = 50%，<br/>当前 4 Pod 共 240%<br/>期望副本 = ceil(240/50) = 5<br/>不够 → 扩容到 5 个"| Deploy["调整 Deployment 的 replicas"]
 ```
-┌──────────────────────────────────────────────────────┐
-│                    HPA 工作流程                        │
-│                                                      │
-│  Metrics Server（采集 Pod 的 CPU/内存指标）            │
-│       │                                              │
-│       ▼                                              │
-│  HPA Controller（每 15-30 秒检查一次）                │
-│       │                                              │
-│       │  期望副本数 = ceil(当前指标值 / 目标指标值)    │
-│       │                                              │
-│       │  例：目标 CPU = 50%，当前 4 Pod 共 240%      │
-│       │  期望副本 = ceil(240/50) = 5                  │
-│       │  不够 → 扩容到 5 个                           │
-│       │                                              │
-│       ▼                                              │
-│  调整 Deployment 的 replicas                          │
-└──────────────────────────────────────────────────────┘
-```
+
+> **图 7-2：HPA 工作流程**
 
 #### 7.5.2 前提条件
 
@@ -531,25 +521,26 @@ VPA: 2 个 Pod（1核2G）→ 2 个 Pod（2核4G）     ← 加资源
 
 HPA/VPA 调整 Pod 级别，CA 调整**节点级别**——自动增减 Node 数量。
 
+```mermaid
+flowchart TB
+    subgraph L1["Layer 1: HPA（Pod 级别）"]
+        L1A["流量增大，Pod 不够 → 增加副本"]
+    end
+
+    subgraph L2["Layer 2: VPA（Pod 级别）"]
+        L2A["Pod 资源不够 → 增加单 Pod 的资源"]
+    end
+
+    subgraph L3["Layer 3: Cluster Autoscaler（Node 级别）"]
+        L3A["所有 Node 的资源都被 Pod 占满了"]
+        L3A --> L3B["Pod 处于 Pending 状态"]
+        L3B --> L3C["CA 自动向云厂商申请新 Node 加入集群"]
+        L3C --> L3D["Pod 调度到新 Node"]
+        L3D --> L3E["反过来，Node 利用率低 → CA 缩减 Node"]
+    end
 ```
-┌─────────────────────────────────────────┐
-│         三级自动伸缩体系                    │
-│                                         │
-│  Layer 1: HPA（Pod 级别）               │
-│  → 流量增大，Pod 不够 → 增加副本        │
-│                                         │
-│  Layer 2: VPA（Pod 级别）               │
-│  → Pod 资源不够 → 增加单 Pod 的资源     │
-│                                         │
-│  Layer 3: Cluster Autoscaler（Node 级别）│
-│  → 所有 Node 的资源都被 Pod 占满了       │
-│  → Pod 处于 Pending 状态                │
-│  → CA 自动向云厂商申请新 Node 加入集群   │
-│  → Pod 调度到新 Node                    │
-│                                         │
-│  反过来，Node 利用率低 → CA 缩减 Node    │
-└─────────────────────────────────────────┘
-```
+
+> **图 7-3：三级自动伸缩体系**
 
 > CA 是云厂商级别的能力（AWS/阿里云/GCP），在 Sealos 这种托管平台上不适用。面试中知道有这个东西就行。
 

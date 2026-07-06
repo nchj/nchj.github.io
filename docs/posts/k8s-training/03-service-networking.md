@@ -26,21 +26,15 @@ K8S 网络有三大基本要求（CNI 实现）：
 2. **所有 Node 和所有 Pod 之间可以直接通信**
 3. **Pod 看到自己的 IP 和其他 Pod 的 IP 是一样的**
 
+```mermaid
+flowchart LR
+    PodA["Pod A<br/>10.244.1.5"] <-->|"直接通信"| CNI["CNI 插件<br/>(Calico等)"]
+    CNI <--> PodB["Pod B<br/>10.244.2.3"]
+
+    note1["K8S 网络三大要求：<br/>1. 所有 Pod 之间可以直接通信（不经过 NAT）<br/>2. 所有 Node 和所有 Pod 之间可以直接通信<br/>3. Pod 看到自己的 IP 和其他 Pod 的 IP 是一样的"]
 ```
-┌──────────────┐       ┌──────────────┐
-│   Pod A      │       │   Pod B      │
-│ 10.244.1.5   │──────▶│ 10.244.2.3   │
-│              │  直接  │              │
-└──────────────┘  通信  └──────────────┘
-       ▲                    ▲
-       │                    │
-       └────────┬───────────┘
-                │
-         ┌──────┴──────┐
-         │   CNI 插件    │
-         │ (Calico等)   │
-         └─────────────┘
-```
+
+> **图 3-1：K8S 网络模型**
 
 ### 3.2 为什么需要 Service？
 
@@ -51,23 +45,16 @@ K8S 网络有三大基本要求（CNI 实现）：
 
 **解决**：Service 提供稳定的 VIP（虚拟 IP）和 DNS 名称
 
+```mermaid
+flowchart TB
+    SVC["Service<br/>ClusterIP<br/>10.0.0.100"] -->|"负载均衡"| P1["Pod 1<br/>.1.5"]
+    SVC --> P2["Pod 2<br/>.2.3"]
+    SVC --> P3["Pod 3<br/>.2.4"]
+
+    note1["Pod 3 挂了？Service 自动从 Endpoints 移除<br/>新 Pod 加入？Service 自动加入 Endpoints"]
 ```
-          ┌──────────┐
-          │ Service  │
-          │ ClusterIP│
-          │10.0.0.100│
-          └────┬─────┘
-               │ 负载均衡
-        ┌──────┼──────┐
-        ▼      ▼      ▼
-     ┌─────┐┌─────┐┌─────┐
-     │Pod 1││Pod 2││Pod 3│
-     │.1.5 ││.2.3 ││.2.4 │
-     └─────┘└─────┘└─────┘
-     
-  Pod 3 挂了？Service 自动从 Endpoints 移除
-  新 Pod 加入？Service 自动加入 Endpoints
-```
+
+> **图 3-2：Service 工作原理**
 
 ### 3.3 Service 四种类型（面试必背）
 
@@ -206,28 +193,17 @@ Ingress 后端的 Service 一般使用 ClusterIP，因为 Ingress Controller 运
 
 在生产环境中，Ingress Controller 通常通过 LoadBalancer 类型的 Service 暴露，云厂商会提供外部 IP，将外部流量引入集群，再由 Ingress Controller 根据 Ingress 规则转发到后端 ClusterIP Service。
 
+```mermaid
+flowchart TB
+    User["互联网用户"] -->|"请求"| Ingress["Ingress<br/>Controller<br/>(Nginx/Traefik)"]
+
+    Ingress -->|"HTTP 路由规则"| Rules["Ingress 资源<br/><br/>host: api.example.com → api-svc<br/>host: www.example.com → web-svc<br/>/api/* → api-svc<br/> /* → web-svc"]
+
+    Rules --> apiSVC["api-svc<br/>ClusterIP"]
+    Rules --> webSVC["web-svc<br/>ClusterIP"]
 ```
-互联网用户
-    │
-    ▼
-┌──────────┐
-│ Ingress  │ ← 入口控制器（Nginx/Traefik）
-│ Controller│
-└────┬─────┘
-     │ HTTP 路由规则
-     ▼
-┌──────────────────────────────────┐
-│         Ingress 资源              │
-│                                  │
-│  host: api.example.com → api-svc │
-│  host: www.example.com → web-svc │
-│  /api/* → api-svc               │
-│  /* → web-svc                    │
-└──────────────────────────────────┘
-     │         │
-     ▼         ▼
-  [api-svc]  [web-svc]  ← ClusterIP Service
-```
+
+> **图 3-3：Ingress 工作原理**
 
 ```yaml
 apiVersion: networking.k8s.io/v1

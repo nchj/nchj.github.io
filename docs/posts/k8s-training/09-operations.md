@@ -130,29 +130,23 @@ kubectl auth can-i --list --as=system:serviceaccount:k8s-training:app-sa -n k8s-
 
 ### 9.2 Pod 生命周期与状态转换
 
-```
-                    ┌──────────┐
-          kubectl   │ Pending  │ ← 资源已创建，等待调度
-        apply ────→│          │
-                    └────┬─────┘
-                         │ Scheduler 分配 Node
-                         ▼
-                    ┌──────────┐
-                    │ Running  │ ← 容器已启动（Running 或 Running+Ready）
-                    │          │
-                    └──┬───┬───┘
-                       │   │
-              探针失败 │   │ 正常退出
-                       │   │
-                       ▼   ▼
-              ┌────────┐ ┌──────────┐
-              │Failed │ │Succeeded │
-              └────────┘ └──────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: kubectl apply
+    Pending --> Running: Scheduler 分配 Node
+    Running --> Succeeded: 正常退出
+    Running --> Failed: 探针失败
+    Running --> Unknown: Node 不可达
+    Unknown --> Running: Node 恢复
 
-              ┌──────────┐
-              │Unknown  │ ← Node 不可达
-              └──────────┘
+    note right of Pending: 资源已创建，等待调度
+    note right of Running: 容器已启动（Running 或 Running+Ready）
+    note right of Succeeded: 用于 Job/CronJob（正常退出）
+    note right of Failed: 容器启动失败
+    note right of Unknown: Node 不可达
 ```
+
+> **图 9-1：Pod 生命周期状态转换图**
 
 **面试关键：理解 Pending 不一定是异常，可能是正常的调度等待。**
 
@@ -380,24 +374,24 @@ kubectl logs -n kube-system etcd-<node>
 
 #### 9.5.3 集中式日志方案
 
+```mermaid
+flowchart LR
+    subgraph EFK["方案1：EFK Stack（传统）"]
+        F1["Fluentd<br/>(采集)"] --> E1["Elasticsearch<br/>(存储/搜索)"]
+        E1 --> K1["Kibana<br/>(可视化)"]
+    end
+
+    subgraph PLG["方案2：PLG Stack（更现代）"]
+        P1["Promtail<br/>(采集)"] --> L1["Loki<br/>(存储)"]
+        L1 --> G1["Grafana<br/>(可视化)"]
+    end
+
+    subgraph Cloud["方案3：云厂商托管"]
+        C1["阿里云 SLS / AWS CloudWatch / 腾讯云 CLS"]
+    end
 ```
-生产环境的日志方案：
 
-  方案1：EFK Stack（传统）
-  ┌────────┐   ┌──────────┐   ┌─────────────┐
-  │ Fluentd │→→│Elasticsearch│→→│  Kibana     │
-  │(采集)    │   │(存储/搜索) │   │(可视化)     │
-  └────────┘   └──────────┘   └─────────────┘
-
-  方案2：PLG Stack（更现代）
-  ┌────────┐   ┌──────────┐   ┌─────────────┐
-  │Promtail│→→│  Loki     │→→│  Grafana    │
-  │(采集)    │   │(存储)     │   │(可视化)     │
-  └────────┘   └──────────┘   └─────────────┘
-
-  方案3：云厂商托管
-  → 阿里云 SLS / AWS CloudWatch / 腾讯云 CLS
-```
+> **图 9-2：集中式日志方案**
 
 ---
 
@@ -405,28 +399,27 @@ kubectl logs -n kube-system etcd-<node>
 
 #### 9.6.1 Prometheus + Grafana（行业标准）
 
+```mermaid
+flowchart TB
+    subgraph Prometheus["Prometheus<br/>(采集、存储、告警)"]
+        P["Prometheus<br/>(数据源)"]
+    end
+
+    P --> G["Grafana<br/>(面板)"]
+    P --> A["AlertManager<br/>(告警通知)"]
+
+    subgraph Targets["采集目标"]
+        K["kubelet<br/>(Node/Pod 指标)"]
+        KSM["kube-state-metrics<br/>(K8S 资源状态)"]
+        NE["node-exporter<br/>(Node 硬件指标)"]
+        BB["blackbox-exporter<br/>(探针)"]
+        APP["应用自带 /metrics 端点"]
+    end
+
+    K & KSM & NE & BB & APP --> P
 ```
-┌──────────────────────────────────────────────────┐
-│                监控体系架构                         │
-│                                                  │
-│  ┌──────────────┐                               │
-│  │  Prometheus   │ ← 采集、存储、告警              │
-│  │  (数据源)      │                               │
-│  └──────┬───────┘                               │
-│         │                                        │
-│    ┌────┴────┐                                   │
-│    ▼         ▼                                   │
-│  Grafana  AlertManager                           │
-│  (面板)    (告警通知)                              │
-│                                                  │
-│  采集目标：                                       │
-│  ├── kubelet (Node/Pod 指标)                     │
-│  ├── kube-state-metrics (K8S 资源状态)            │
-│  ├── node-exporter (Node 硬件指标)                │
-│  ├── blackbox-exporter (探针)                     │
-│  └── 应用自带 /metrics 端点                       │
-└──────────────────────────────────────────────────┘
-```
+
+> **图 9-3：Prometheus + Grafana 监控体系架构**
 
 #### 9.6.2 关键监控指标
 

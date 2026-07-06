@@ -23,25 +23,22 @@ tags:
 
 **一句话理解**：Pod 是 K8S 中**真正运行的实体**。不管你写的是 Deployment、StatefulSet 还是 DaemonSet，最终跑在节点上的都是 Pod。
 
+```mermaid
+flowchart TB
+    subgraph Pod["Pod (IP: 10.244.1.5)"]
+        App["Container (App)<br/>Port: 8080"]
+        Sidecar["Container (Sidecar)<br/>Port: 9090"]
+        Pause["Pause Container<br/>(共享网络)"]
+
+        App <--> Pause
+        Sidecar <--> Pause
+    end
+
+    note1["共享: Network Namespace"]
+    note2["共享: Volume (挂载点)"]
 ```
-┌─────────────────────────────────────┐
-│              Pod (IP: 10.244.1.5)    │
-│                                     │
-│  ┌─────────────┐ ┌──────────────┐  │
-│  │   Container  │ │  Container   │  │
-│  │    (App)     │ │ (Sidecar)    │  │
-│  │             │ │              │  │
-│  │ Port: 8080  │ │ Port: 9090  │  │
-│  └─────────────┘ └──────────────┘  │
-│                                     │
-│  ┌──────────────────────────────┐  │
-│  │  Pause Container (共享网络)    │  │
-│  └──────────────────────────────┘  │
-│                                     │
-│  共享: Network Namespace            │
-│  共享: Volume (挂载点)              │
-└─────────────────────────────────────┘
-```
+
+> **图 2-1：Pod 结构图**
 
 **为什么 K8S 不直接管理容器而要加一层 Pod？**
 - 有些应用天然需要多个进程协作（如日志收集 sidecar）
@@ -52,23 +49,22 @@ tags:
 
 Pod 有两种创建方式，**理解这个就理解了 Deployment 里"隐含的 Pod"是怎么回事**：
 
-```
-方式一：直接创建 Pod（独立 Pod）
-┌────────────┐
-│ 你写 Pod   │  →  kubectl apply -f pod.yaml  →  K8S 直接创建 Pod
-│   YAML     │     你要自己管一切：
-│            │     Pod 挂了就没了，没人帮你重启
-└────────────┘     没有自动扩缩，没有滚动更新
+```mermaid
+flowchart LR
+    subgraph Way1["方式一：直接创建 Pod（独立 Pod）"]
+        A1["你写 Pod YAML"]
+        A1 --> B1["kubectl apply -f pod.yaml → K8S 直接创建 Pod"]
+        B1 --> C1["你要自己管一切：Pod 挂了就没了，没人帮你重启，没有自动扩缩，没有滚动更新"]
+    end
 
-方式二：通过 Deployment 管理 Pod（托管 Pod）⭐ 绝大多数场景
-┌──────────────┐
-│ 你写 Deploy  │  →  kubectl apply -f deploy.yaml
-│   YAML       │     Deployment 根据 template 自动帮你创建 Pod
-│              │     Pod 挂了自动重启
-│              │     想多副本？改 replicas 就行
-│              │     想更新？改 image 就自动滚动更新
-└──────────────┘
+    subgraph Way2["方式二：通过 Deployment 管理 Pod（托管 Pod）⭐"]
+        A2["你写 Deploy YAML"]
+        A2 --> B2["kubectl apply -f deploy.yaml"]
+        B2 --> C2["Deployment 根据 template 自动帮你创建 Pod<br/>Pod 挂了自动重启<br/>想多副本？改 replicas 就行<br/>想更新？改 image 就自动滚动更新"]
+    end
 ```
+
+> **图 2-2：Pod 的两种创建方式**
 
 **关键结论**：
 > **Pod 永远是 K8S 的运行单位，但你不一定需要直接写 Pod YAML。**
@@ -80,33 +76,26 @@ Pod 有两种创建方式，**理解这个就理解了 Deployment 里"隐含的 
 
 #### 先看本质：Deployment = Pod 的管理者
 
+```mermaid
+flowchart TB
+    subgraph Deploy["Deployment（管理者）"]
+        direction TB
+        D1["我想要 3 个 Pod，标签都是 app=nginx，用 nginx:1.25"]
+        D2["selector: ← 用标签来\"认领\" Pod<br/>app: nginx"]
+        D3["replicas: 3 ← 要维护 3 个副本"]
+        D4["template: ← Pod 的\"模子\"（模板）<br/>metadata.labels.app: nginx ← 新创建的 Pod 打上这个标签<br/>spec: ← 容器怎么定义"]
+    end
+
+    Deploy -->|"Deployment Controller 看着这个模板<br/>发现\"实际只有 1 个 Pod，我想要 3 个\"<br/>→ 自动创建 2 个新 Pod"| Pods
+
+    subgraph Pods[""]
+        P1["Pod-1<br/>app=nginx<br/>1.25"]
+        P2["Pod-2<br/>app=nginx<br/>1.25"]
+        P3["Pod-3<br/>app=nginx<br/>1.25"]
+    end
 ```
-┌─────────────────────────────────────────────────┐
-│              Deployment（管理者）                  │
-│                                                 │
-│  我想要 3 个 Pod，标签都是 app=nginx，用 nginx:1.25│
-│                                                 │
-│  selector:           ← 用标签来"认领" Pod       │
-│    app: nginx                                  │
-│  replicas: 3         ← 要维护 3 个副本          │
-│  template:           ← Pod 的"模子"（模板）     │
-│    metadata:                                 │
-│      labels:                                 │
-│        app: nginx       ← 新创建的 Pod 打上这个标签│
-│    spec:                                     │
-│      containers: ...   ← 容器怎么定义          │
-└─────────────────────────────────────────────────┘
-           │
-           │  Deployment Controller 看着这个模板
-           │  发现"实际只有 1 个 Pod，我想要 3 个"
-           │  → 自动创建 2 个新 Pod
-           ▼
-┌──────────┐  ┌──────────┐  ┌──────────┐
-│  Pod-1   │  │  Pod-2   │  │  Pod-3   │
-│ app=nginx│  │ app=nginx│  │ app=nginx│  ← 自动创建，标签匹配
-│ 1.25     │  │ 1.25     │  │ 1.25     │
-└──────────┘  └──────────┘  └──────────┘
-```
+
+> **图 2-3：Deployment 与 Pod 的关系**
 
 #### Deployment YAML 中的"三套标签"（最容易混淆的地方）
 
@@ -253,41 +242,20 @@ spec:
 
 #### Deployment 创建 Pod 的完整过程
 
-```
-你执行 kubectl apply -f deployment.yaml
-         │
-         ▼
-┌──────────────────────────────────────────────────────────────┐
-│ 1. API Server 保存 Deployment 对象到 etcd                     │
-│                                                               │
-│ 2. Deployment Controller (Master 上的控制循环) 发现:            │
-│    "有人创建了一个 replicas=3 的 Deployment"                   │
-│    "selector 要求 app=nginx 的 Pod"                            │
-│    "当前 0 个 Pod 匹配"                                       │
-│    "差 3 个，我来创建！"                                       │
-│                                                               │
-│ 3. Deployment Controller 自动创建一个 ReplicaSet               │
-│    (ReplicaSet 是 Deployment 的中间层，通常不直接操作)           │
-│                                                               │
-│ 4. ReplicaSet Controller 根据 template 创建 3 个 Pod           │
-│    → Pod 名自动生成: nginx-deployment-abc1234-5xyz             │
-│    → Pod 自动打上 template.metadata.labels                      │
-│                                                               │
-│ 5. Scheduler 调度 Pod 到具体的 Node                           │
-│                                                               │
-│ 6. kubelet 在 Node 上拉取镜像、启动容器                         │
-│                                                               │
-│ 7. 你执行 kubectl get pods 看到的是这 3 个 Pod，               │
-│    不是 Deployment 本身                                        │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    A["你执行 kubectl apply -f deployment.yaml"] --> B["1. API Server 保存 Deployment 对象到 etcd"]
+    B --> C["2. Deployment Controller 发现:<br/>有人创建了一个 replicas=3 的 Deployment<br/>selector 要求 app=nginx 的 Pod<br/>当前 0 个 Pod 匹配<br/>差 3 个，我来创建！"]
+    C --> D["3. Deployment Controller 自动创建一个 ReplicaSet<br/>(ReplicaSet 是 Deployment 的中间层，通常不直接操作)"]
+    D --> E["4. ReplicaSet Controller 根据 template 创建 3 个 Pod<br/>→ Pod 名自动生成: nginx-deployment-abc1234-5xyz<br/>→ Pod 自动打上 template.metadata.labels"]
+    E --> F["5. Scheduler 调度 Pod 到具体的 Node"]
+    F --> G["6. kubelet 在 Node 上拉取镜像、启动容器"]
+    G --> H["7. 你执行 kubectl get pods 看到的是这 3 个 Pod，<br/>不是 Deployment 本身"]
 
-实际层级关系：
-Deployment
-  └── ReplicaSet (自动创建，通常不直接操作)
-       └── Pod (实际运行的)
-       └── Pod
-       └── Pod
+    note1["实际层级关系：<br/>Deployment<br/>└── ReplicaSet (自动创建，通常不直接操作)<br/>&nbsp;&nbsp;&nbsp;&nbsp;└── Pod (实际运行的)<br/>&nbsp;&nbsp;&nbsp;&nbsp;└── Pod<br/>&nbsp;&nbsp;&nbsp;&nbsp;└── Pod"]
 ```
+
+> **图 2-4：Deployment 创建 Pod 的完整过程**
 
 #### 一句话总结 Deployment 和 Pod 的关系
 
@@ -646,13 +614,22 @@ spec:
 
 #### 架构分层原则：业务系统不应直接调 K8S API
 
-```
-❌ 错误做法（强耦合）：
-业务系统 ──直接调用──▶ K8S API ──▶ 创建 Job
+```mermaid
+flowchart LR
+    subgraph Wrong["❌ 错误做法（强耦合）"]
+        A1["业务系统"] -->|"直接调用"| K8S["K8S API"]
+        K8S -->|"创建 Job"| J["Job"]
+    end
 
-✅ 正确做法（解耦）：
-业务系统 ──写入──▶ 消息队列 / 数据库 ──▶ 调度层 ──▶ K8S API ──▶ 创建 Job
+    subgraph Correct["✅ 正确做法（解耦）"]
+        A2["业务系统"] -->|"写入"| MQ["消息队列 / 数据库"]
+        MQ -->|"调度层"| Dispatcher["调度层"]
+        Dispatcher -->|"K8S API"| K8S2["K8S API"]
+        K8S2 -->|"创建 Job"| J2["Job"]
+    end
 ```
+
+> **图 2-5：业务系统与 K8S 交互的正确架构**
 
 **为什么业务系统不能直接调 K8S API？**
 1. **职责混乱**：业务系统需要知道 K8S 集群地址、ServiceAccount 权限、Job YAML 结构——把基础设施细节泄漏到业务层
@@ -670,12 +647,15 @@ spec:
 
 ##### 模式 A：消息队列 + KEDA ScaledJob（推荐，消息队列场景）
 
+```mermaid
+flowchart LR
+    A["业务系统"] -->|"写消息"| MQ["SQS/Kafka/Redis"]
+    MQ -->|"KEDA 监听"| KEDA["KEDA"]
+    KEDA -->|"自动创建 Job"| TaskPod["任务 Pod"]
+    KEDA -.->|"（K8S 集群内的 KEDA 组件，<br/>业务系统完全无感 K8S）"| note["⚠️"]
 ```
-业务系统 ──写消息──▶ SQS/Kafka/Redis ──▶ KEDA 监听 ──▶ 自动创建 Job ──▶ 任务 Pod
-                                           ↑
-                               （K8S 集群内的 KEDA 组件，
-                                业务系统完全无感 K8S）
-```
+
+> **图 2-6：消息队列 + KEDA ScaledJob 架构**
 
 **KEDA 是 CNCF 项目，本质是 K8S 集群内的一个 Controller**，它盯着外部队列的深度，自动帮你创建/销毁 Job。业务系统只写队列，和 K8S 零耦合。
 
@@ -774,19 +754,19 @@ spec:
 
 业务系统只写一行数据库记录（如 `status=pending`），由一个专职的 **Dispatcher 微服务**轮询 DB，发现新任务后调用 K8S API 创建 Job，并负责维护任务状态回写。
 
+```mermaid
+flowchart TB
+    A["业务系统"] -->|"INSERT"| DB["tasks 表 (status=pending)"]
+    DB --> B["Dispatcher 服务（K8S 内的一个 Deployment）"]
+    B --> C1["轮询 DB，发现 pending 任务"]
+    B --> C2["调用 K8S API 创建 Job"]
+    B --> C3["更新 tasks 表 status=running"]
+    B --> C4["监听 Job 完成事件，回写 status=done/failed"]
+    C2 --> J["Job Pod（处理任务）"]
+    J --> DB2["任务完成，向 DB 写入结果"]
 ```
-业务系统 ──INSERT──▶ tasks 表 (status=pending)
-                          ↓
-                   Dispatcher 服务（K8S 内的一个 Deployment）
-                   ├── 轮询 DB，发现 pending 任务
-                   ├── 调用 K8S API 创建 Job
-                   ├── 更新 tasks 表 status=running
-                   └── 监听 Job 完成事件，回写 status=done/failed
-                          ↓
-                       Job Pod（处理任务）
-                          ↓
-                   任务完成，向 DB 写入结果
-```
+
+> **图 2-7：Dispatcher 服务架构**
 
 **Dispatcher 实现思路（Python 伪代码）：**
 ```python
@@ -910,9 +890,13 @@ spec:
 
 当任务有依赖关系（步骤 A 完成后才能执行步骤 B/C，或者需要分支、并行、重试逻辑），推荐 **Argo Workflows**。
 
+```mermaid
+flowchart LR
+    A["业务系统"] -->|"提交 Workflow 定义"| Argo["Argo Server（K8S 内）"]
+    Argo -->|"按 DAG 顺序创建 Pod"| Pods["Pod"]
 ```
-业务系统 ──提交 Workflow 定义──▶ Argo Server（K8S 内）──▶ 按 DAG 顺序创建 Pod
-```
+
+> **图 2-8：Argo Workflows 架构**
 
 <!-- v-pre -->
 ```yaml
