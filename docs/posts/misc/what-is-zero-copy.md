@@ -1,10 +1,18 @@
 ---
 title: "零拷贝（zero copy）是什么"
-category: "misc"
-tags: ["zero copy"]
+date: "2026-04-04"
+category: "杂项"
+tags:
+  - "zero copy"
+  - "linux"
+  - "io"
+  - "dma"
+  - "kafka"
+  - "rocketmq"
+source: "https://www.zhihu.com/question/634419059/answer/3493079778"
 ---
 
-转载于 https://www.zhihu.com/question/634419059/answer/3493079778
+> 转载自 [知乎 · 零拷贝技术 Zero-Copy 是什么](https://www.zhihu.com/question/634419059/answer/3493079778)
 
 零拷贝技术 Zero-Copy 是指计算机执行操作时，CPU 不需要先将数据从某处内存复制到另一个特定区域，从而可以减少上下文切换以及 CPU 的拷贝时间。
 
