@@ -1,7 +1,10 @@
 ---
-title: "Zero Copy"
-category: "Zero Copy"
+title: "零拷贝（zero copy）是什么"
+category: "misc"
+tags: ["zero copy"]
 ---
+
+转载于 https://www.zhihu.com/question/634419059/answer/3493079778
 
 零拷贝技术 Zero-Copy 是指计算机执行操作时，CPU 不需要先将数据从某处内存复制到另一个特定区域，从而可以减少上下文切换以及 CPU 的拷贝时间。
 
@@ -9,13 +12,7 @@ category: "Zero Copy"
 
 在 DMA 技术出现之前，应用程序与磁盘之间的 I/O 操作都是通过 CPU 的中断完成的。
 
-
-
-
-![](./index/v2-5197e3491710d22a4c0a50fca267ed76_720w.jpg)
-
-
-
+![](./what-is-zero-copy/io-interrupt-cpu.jpg)
 
 1. 用户进程向 CPU 发起 read 系统调用读取数据，由用户态切换为内核态，然后一直阻塞等待数据的返回。
 2. CPU 在接收到指令以后对磁盘发起 I/O 请求，将磁盘数据先放入磁盘控制器缓冲区。
@@ -33,17 +30,14 @@ DMA 的全称是直接内存访问（Direct Memory Access），是一种硬件�
 
 目前支持 DMA 的硬件包括：网卡、声卡、显卡、磁盘控制器等。
 
-
-
-
-![](./index/v2-c583210d792bb659d7098f5bcecdb112_720w.jpg)
+![](./what-is-zero-copy/dma-architecture.jpg)
 
 基于 DMA 访问方式，系统主内存于硬盘或网卡之间的数据传输可以绕开 CPU 的全程调度，数据搬运的工作交给 DMA 控制器，在传输过程中，CPU 可以继续处理其他的工作，提升系统的资源利用率。 
 
 
 
 
-![](./index/v2-0400cd73c14f04fadc56364bf6682665_720w.jpg)
+![](./what-is-zero-copy/dma-read-flow.jpg)
 
 1. 用户进程向 CPU 发起 read 系统调用读取数据，用户态切换为内核态，然后一直阻塞等待数据的返回。
 2. CPU 在接收到指令以后对 DMA 磁盘控制器发起调度指令。
@@ -61,7 +55,7 @@ DMA 的全称是直接内存访问（Direct Memory Access），是一种硬件�
 
 
 
-![](./index/v2-f245cbe663c09d9dba135997af6a7935_720w.jpg)
+![](./what-is-zero-copy/traditional-io-model.jpg)
 
 
 
@@ -71,7 +65,7 @@ DMA 的全称是直接内存访问（Direct Memory Access），是一种硬件�
 
 
 
-![](./index/v2-b8e85ca37ddc08993262657be8c1802b_720w.jpg)
+![](./what-is-zero-copy/traditional-io-copy-flow.jpg)
 
 
 
@@ -100,7 +94,7 @@ mmap 是 Linux 提供的一种内存映射文件的机制，它实现了将内�
 
 
 
-![](./index/v2-6d47084608517262617a2aa8868dcb8b_720w.jpg)
+![](./what-is-zero-copy/mmap-write-model.jpg)
 
 
 
@@ -110,7 +104,7 @@ mmap 是 Linux 提供的一种内存映射文件的机制，它实现了将内�
 
 
 
-![](./index/v2-fda698bfc383039aececb1e50afee451_720w.jpg)
+![](./what-is-zero-copy/mmap-write-copy-flow.jpg)
 
 
 
@@ -138,14 +132,14 @@ sendfile 系统调用在 Linux 内核版本 2.1 中被引入，目的是简化�
 
 sendfile 系统调用的引入，不仅减少了 CPU 拷贝的次数，还减少了上下文切换的次数，它的伪代码如下：
 
-![](./index/v2-bdd9c6e9bee53887d7c8e54de51a40bd_720w.jpg)
+![](./what-is-zero-copy/sendfile-model.jpg)
 
 基于 sendfile 系统调用的零拷贝方式，整个拷贝过程会发生 2 次上下文切换，1 次 CPU 拷贝和 2 次 DMA 拷贝。
 
 
 
 
-![](./index/v2-d39609cd0b15e71e1c0be85fcfc57002_720w.jpg)
+![](./what-is-zero-copy/sendfile-copy-flow.jpg)
 
 
 
@@ -166,14 +160,14 @@ Linux 2.4 版本的内核对 sendfile 系统调用进行修改，为 DMA 拷贝�
 
 它将内核空间的读缓冲区中对应的数据描述信息（内存地址、地址偏移量）记录到相应的网络缓冲区中，由 DMA 根据内存地址、地址偏移量将数据批量地从读缓冲区拷贝到网卡设备中，这样就省去了内核空间中仅剩的 1 次 CPU 拷贝操作。
 
-![](./index/v2-bdd9c6e9bee53887d7c8e54de51a40bd_720w.jpg)
+![](./what-is-zero-copy/sendfile-model.jpg)
 
 在硬件的支持下，sendfile 拷贝方式不再从内核缓冲区的数据拷贝到 socket 缓冲区，取而代之的仅仅是缓冲区文件描述符和数据长度的拷贝，这样 DMA 引擎直接利用 gather 操作将页缓存中数据打包发送到网络中即可，本质就是和虚拟内存映射的思路类似。
 
 
 
 
-![](./index/v2-eb46b9f7328f2210f51ade938f58f3a5_720w.jpg)
+![](./what-is-zero-copy/sendfile-dma-gather-flow.jpg)
 
 
 
