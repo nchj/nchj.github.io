@@ -63,7 +63,7 @@ kubectl port-forward svc/training-app 8080:80 -n $NS
 kubectl scale deployment training-app --replicas=5 -n $NS
 
 # 进入 Pod
-kubectl exec -it deployment/training-app -- sh -n $NS
+kubectl exec -it deployment/training-app -n $NS -- sh
 
 # 查看 ConfigMap
 kubectl get configmap training-app-config -o yaml -n $NS
