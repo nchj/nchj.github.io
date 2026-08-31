@@ -5,7 +5,7 @@
 
 set -e
 
-KUBECONFIG_PATH="$HOME/.kube/config"
+KUBECONFIG_PATH="${KUBECONFIG:-$HOME/.kube/config}"
 NS="k8s-training"
 RELEASE_NAME="training-app"
 
