@@ -212,7 +212,7 @@ for k in data:
 " 2>/dev/null || kubectl get secret ${RELEASE_NAME}-secret -n $NS 2>/dev/null || warn "未找到 Secret"
 
 info "解码验证（知识点：base64 不是加密）："
-DB_HOST=$(kubectl get secret ${RELEASE_NAME}-secret -n $NS -o jsonpath='{.data.DB_HOST}' 2>/dev/null)
+DB_HOST=$(kubectl get secret ${RELEASE_NAME}-secret -n $NS -o jsonpath='{.data.DB_HOST}' 2>/dev/null || true)
 if [ -n "$DB_HOST" ]; then
     echo -n "  DB_HOST 解码: " && echo "$DB_HOST" | base64 -d 2>/dev/null && echo
     DB_PASS=$(kubectl get secret ${RELEASE_NAME}-secret -n $NS -o jsonpath='{.data.DB_PASSWORD}' 2>/dev/null)
