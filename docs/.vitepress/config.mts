@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { createPostsSidebar } from './utils/content.mts'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
 const nav = [
   {
@@ -27,12 +28,13 @@ const sidebar = {
   '/posts/': createPostsSidebar(process.cwd())
 }
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   lang: 'zh-CN',
   title: 'NCHJ 的笔记',
   description: '技术笔记与工程实践整理',
   lastUpdated: true,
   cleanUrls: true,
+  mermaid: {},
   themeConfig: {
     nav,
     sidebar,
@@ -47,4 +49,4 @@ export default defineConfig({
     lightModeSwitchTitle: '切换到浅色模式',
     darkModeSwitchTitle: '切换到深色模式'
   }
-})
+}))

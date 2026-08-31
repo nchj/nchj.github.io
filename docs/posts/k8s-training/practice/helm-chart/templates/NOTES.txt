@@ -1,0 +1,23 @@
+🎉 训练应用部署成功！
+
+应用信息：
+  Release名称: {{ .Release.Name }}
+  Namespace:   {{ .Release.Namespace }}
+  副本数:      {{ .Values.replicaCount }}
+  镜像:        {{ .Values.image.repository }}:{{ .Values.image.tag }}
+
+访问方式：
+  集群内部：http://{{ include "training-app.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+{{- if .Values.ingress.enabled }}
+  外部访问：http://{{ .Values.ingress.host }}
+{{- end }}
+
+常用命令：
+  查看Pod:   kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+  查看日志:  kubectl logs -f deployment/{{ include "training-app.fullname" . }} -n {{ .Release.Namespace }}
+  端口转发:  kubectl port-forward svc/{{ include "training-app.fullname" . }} 8080:80 -n {{ .Release.Namespace }}
+  查看配置:  kubectl get configmap {{ include "training-app.fullname" . }}-config -o yaml -n {{ .Release.Namespace }}
+  查看密钥:  kubectl get secret {{ include "training-app.fullname" . }}-secret -o yaml -n {{ .Release.Namespace }}
+
+⚠️ 记得练习完清理资源：helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}

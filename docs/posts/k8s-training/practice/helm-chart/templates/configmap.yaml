@@ -1,0 +1,14 @@
+# ===========================================
+# ConfigMap 模板
+# 知识点：非敏感配置外部化、配置与代码分离
+# ===========================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "training-app.fullname" . }}-config
+  labels:
+    {{- include "training-app.labels" . | nindent 4 }}
+data:
+{{- range $key, $val := .Values.config }}
+  {{ $key }}: {{ $val | quote }}
+{{- end }}

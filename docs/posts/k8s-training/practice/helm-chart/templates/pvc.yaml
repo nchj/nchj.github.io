@@ -1,0 +1,21 @@
+# ===========================================
+# PVC 模板
+# 知识点：持久化存储、动态供应
+# ===========================================
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "training-app.fullname" . }}-pvc
+  labels:
+    {{- include "training-app.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
+  {{- end }}
+{{- end }}

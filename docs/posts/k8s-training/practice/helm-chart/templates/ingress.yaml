@@ -1,0 +1,27 @@
+# ===========================================
+# Ingress 模板
+# 知识点：7层HTTP路由、域名路由、TLS
+# ===========================================
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "training-app.fullname" . }}
+  labels:
+    {{- include "training-app.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.path }}
+        pathType: {{ .Values.ingress.pathType }}
+        backend:
+          service:
+            name: {{ include "training-app.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end }}
