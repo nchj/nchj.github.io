@@ -240,14 +240,16 @@ echo "   知识点：RollingUpdate 策略、maxSurge、maxUnavailable"
 echo ""
 
 info "执行滚动更新（修改镜像版本 nginx:1.25 → nginx:1.26）..."
+# 记录升级前的版本号，回滚时用它，避免写死 revision 1
+CURRENT_REVISION=$(helm history $RELEASE_NAME -n $NS 2>/dev/null | tail -1 | awk '{print $1}')
 helm upgrade $RELEASE_NAME $CHART_DIR -n $NS --set image.tag=1.26
 info "等待更新完成..."
 sleep 10
 helm history $RELEASE_NAME -n $NS
 
 echo ""
-info "回滚到上一版本..."
-helm rollback $RELEASE_NAME 1 -n $NS
+info "回滚到上一版本（revision $CURRENT_REVISION）..."
+helm rollback $RELEASE_NAME $CURRENT_REVISION -n $NS
 sleep 10
 ok "回滚完成"
 
