@@ -46,10 +46,10 @@ fi
 # 3. 确认清理干净
 echo ""
 info "验证清理结果："
-REMAINING=$(kubectl get all -n $NS 2>/dev/null || echo "Namespace 不存在")
+REMAINING=$(kubectl get all -n $NS 2>&1 || true)
 if echo "$REMAINING" | grep -q "No resources"; then
     ok "所有资源已清理干净 ✅"
-elif echo "$REMAINING" | grep -q "namespace.*not found"; then
+elif echo "$REMAINING" | grep -qi "not found"; then
     ok "Namespace 已完全删除 ✅"
 else
     warn "可能还有残留资源，请手动检查："
